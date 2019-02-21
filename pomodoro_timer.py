@@ -39,7 +39,7 @@ while True:
     totalSeconds = 0
     numFocus += 1
     if (numFocus-1) % 4 == 0:
-        print("\nYou have completed four focus sessions!"
+        print("\nYou have completed four focus sessions! "
               + "Time for a long break, It will last {x} minutes.".format(x=(break_length*4)))
         long_break = True
         temp = break_length * 60 * 4
