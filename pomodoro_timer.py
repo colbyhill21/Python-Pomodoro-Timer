@@ -1,18 +1,15 @@
 import tkinter as tk
-import time
-# import pygame
-# pygame.init()
+import pygame
+pygame.mixer.init()
 
 window = tk.Tk()  # window is the name of the main window object
 window.title('Focus Timer')
 t_txt = 'Time remaining: {m} Minutes {s} Seconds'
 foc_txt = 'Focus Session {x}'
 rest_txt = 'Rest Session {x}'
-# start_focus_sound = pygame.mixer.Sound("finishFocus.wav")
-# finish_focus_sound = pygame.mixer.Sound("finishFourthFocus.wav")
-# long_break_sound = pygame.mixer.Sound("finishFourthFocus.wav")
-# TODO get pause running
-# TODO reintegrate sound through PyGame
+start_focus_sound = pygame.mixer.Sound("startFocus.wav")
+rest_sound = pygame.mixer.Sound("finishFocus.wav")
+long_rest_sound = pygame.mixer.Sound("finishFourthFocus.wav")
 # TODO make GUI look a bit better
 
 
@@ -52,6 +49,7 @@ class Timer:
         # setup in order to run a focus session.
         self.seconds = 0
         self.minutes = self.focus_length
+        pygame.mixer.Sound.play(start_focus_sound)
 
         # update labels
         self.time_label.configure(text=t_txt.format(m=self.minutes, s=self.seconds))
@@ -68,6 +66,7 @@ class Timer:
                 if self.minutes < 0:
                     # focus session has ended
                     self.num_focus += 1
+
                     self.time_label.after(0, self.start_rest_session)  # start a rest session
 
             # display the new time
@@ -79,8 +78,10 @@ class Timer:
         self.seconds = 0
         if self.num_rest % 4 == 0:
             self.minutes = self.rest_length*4
+            pygame.mixer.Sound.play(long_rest_sound)  # play long rest sound
         else:
             self.minutes = self.rest_length
+            pygame.mixer.Sound.play(rest_sound)  # play rest sound
 
         # update labels
         self.time_label.configure(text=t_txt.format(m=self.minutes, s=self.seconds))
@@ -129,5 +130,4 @@ pause_button = tk.Button(window, textvariable=pause_button_text, width=30,
 
 pause_button.pack()
 
-# run the program?
-window.mainloop()
+window.mainloop()  # run the Tk program loop
