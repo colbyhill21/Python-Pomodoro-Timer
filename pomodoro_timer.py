@@ -1,228 +1,116 @@
-import time
-import sys
-import pygame
-pygame.init()
+import tkinter as tk
+# import pygame
+# pygame.init()
+
+window = tk.Tk()  # window is the name of the main window object
+window.title('Focus Timer')
+t_txt = 'Time remaining: {m} Minutes {s} Seconds'
+foc_txt = 'Focus Session {x}'
+rest_txt = 'Rest Session {x}'
+# start_focus_sound = pygame.mixer.Sound("finishFocus.wav")
+# finish_focus_sound = pygame.mixer.Sound("finishFourthFocus.wav")
+# long_break_sound = pygame.mixer.Sound("finishFourthFocus.wav")
+# TODO get pause running
+# TODO reintegrate sound through PyGame
+# TODO make GUI look a bit better
 
 
-def check_for_events(pause_text_rect):
-    # returns 1 if pause_button_res should be changed.
-    for evt in pygame.event.get():
-        if evt.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        m1, m2, m3 = pygame.mouse.get_pressed()
-        if m1 == 1:  # if left mouse is being pressed.
-            pos1, pos2 = pygame.mouse.get_pos()
-            if pause_text_rect.collidepoint(pos1, pos2):
-                return 1
-    return 0
+def pause_pressed(pbt):
+    if pbt.get() == "Pause":
+        pbt.set("Resume")
+    else:
+        pbt.set("Pause")
 
 
-# TODO make GUI look a bit better.
-# TODO make the pause button pause the clock.
-# TODO change time elapsed to time remaining.
-def main():
-    focus_length = 21
-    break_length = 4
-    start_focus_sound = pygame.mixer.Sound("finishFocus.wav")
-    finish_focus_sound = pygame.mixer.Sound("finishFourthFocus.wav")
-    long_break_sound = pygame.mixer.Sound("finishFourthFocus.wav")
+class Timer:
+    # setup class variables
     num_focus = 1
-    num_break = 1
+    num_rest = 1
     seconds = 1
     minutes = 0
     total_seconds = 0
+    focus_length = 21
+    rest_length = 4
 
-    # string resouces
-    pause_button_res = "PAUSE"
-    # main_text_res = " Welcome to the Pomodoro Timer "
-    
-    # set up the window
-    canvas_width = 500
-    canvas_height = 400
-    widow_surface = pygame.display.set_mode((canvas_width, canvas_height), 0, 32)
-    pygame.display.set_caption('Pomodoro Timer')
+    def __init__(self, parent):
+        # label displaying time
+        self.time_label = tk.Label(parent, text=t_txt.format(m=self.minutes, s=self.seconds), width=30)
+        self.session_label = tk.Label(parent, text=foc_txt.format(x=self.num_focus))
+        # put widgets onto display
+        self.session_label.pack()
+        self.time_label.pack()
 
-    # set up the colors
-    text_color = (255, 255, 255)
-    text_background_color = (0, 0, 0)
-    focus_background_color = (0, 0, 0)
-    rest_background_color = (0, 0, 0)
+        # start the timer
+        self.time_label.after(0, self.start_focus_session)
 
-    # set up fonts
-    basic_font = pygame.font.SysFont(None, 28)
-    big_font = pygame.font.SysFont(None, 40)
+    def start_focus_session(self):
+        # setup in order to run a focus session.
+        self.seconds = 0
+        self.minutes = self.focus_length
 
-    # set up object coordinates
-    welcome_text_coord = [250, 300]
-    pause_text_coord = [420, 50]
-    session_text_coord = [canvas_width/2, 150]
-    time_text_coord = [widow_surface.get_rect().centerx, widow_surface.get_rect().centery]
+        # update labels
+        self.time_label.configure(text=t_txt.format(m=self.minutes, s=self.seconds))
+        self.session_label.configure(text=foc_txt.format(x=self.num_rest))
 
-    # set up the text
-    welcome_text = basic_font.render(" Welcome to the Pomodoro Timer ", True, text_color, text_background_color)
-    welcome_text_rect = welcome_text.get_rect()
-    welcome_text_rect.centerx = welcome_text_coord[0]
-    welcome_text_rect.centery = welcome_text_coord[1]
-    pause_text = big_font.render(pause_button_res, True, text_color, text_background_color)
-    pause_text_rect = pause_text.get_rect()
-    pause_text_rect.centerx = pause_text_coord[0]
-    pause_text_rect.centery = pause_text_coord[1]
+        self.time_label.after(1000, self.focus_session_loop)  # start the focus loop after 1s
 
-    # draw the white background onto the surface
-    widow_surface.fill(focus_background_color)
-    widow_surface.blit(welcome_text, welcome_text_rect)
-    widow_surface.blit(pause_text, pause_text_rect)
-    pygame.display.update()  # draw the window onto the screen
-    
-    while True:
-        if check_for_events(pause_text_rect) == 1:
-            if pause_button_res == "RESUME":
-                pause_button_res = "PAUSE"
-            elif pause_button_res == "PAUSE":
-                pause_button_res = "RESUME"
-            pause_text = big_font.render(pause_button_res, True, text_color, text_background_color)
-            pause_text_rect = pause_text.get_rect()
-            pause_text_rect.centerx = pause_text_coord[0]
-            pause_text_rect.centery = pause_text_coord[1]
-            pygame.display.flip()
+    def focus_session_loop(self):
+        self.seconds -= 1
+        if self.seconds < 0:
+            self.minutes -= 1
+            self.seconds = 59
+            if self.minutes < 0:
+                # focus session has ended
+                self.num_focus += 1
+                self.time_label.after(0, self.start_rest_session)  # start a rest session
 
-        # adds in session text
-        session_text = basic_font.render(
-            "Focus session {x}".format(x=num_focus), True, text_color, text_background_color)
-        session_text_rect = session_text.get_rect()
-        session_text_rect.centerx = session_text_coord[0]
-        session_text_rect.centery = session_text_coord[1]
-        # update screen
-        widow_surface.fill(focus_background_color)
-        widow_surface.blit(welcome_text, welcome_text_rect)
-        widow_surface.blit(pause_text, pause_text_rect)
-        widow_surface.blit(session_text, session_text_rect)
-        pygame.display.flip()
-    
-        # play sound
-        pygame.mixer.Sound.play(start_focus_sound)
-    
-        while total_seconds < focus_length*60:
-            # update time text
-            time_text = basic_font.render(
-                " Time elapsed: {minutes} Minutes {seconds} Seconds ".format(minutes=minutes, seconds=seconds), True,
-                text_color, text_background_color)
-            time_text_rect = time_text.get_rect()
-            time_text_rect.centerx = time_text_coord[0]
-            time_text_rect.centery = time_text_coord[1]
-    
-            # update screen
-            widow_surface.fill(focus_background_color)
-            widow_surface.blit(welcome_text, welcome_text_rect)
-            widow_surface.blit(pause_text, pause_text_rect)
-            widow_surface.blit(time_text, time_text_rect)
-            widow_surface.blit(session_text, session_text_rect)
-            pygame.display.flip()
-    
-            # other operations
-            loop_range = 8
-            for x in range(loop_range):
-                if check_for_events(pause_text_rect) == 1:
-                    if pause_button_res == "RESUME":
-                        pause_button_res = "PAUSE"
-                    elif pause_button_res == "PAUSE":
-                        pause_button_res = "RESUME"
-                    pause_text = big_font.render(pause_button_res, True, text_color, text_background_color)
-                    pause_text_rect = pause_text.get_rect()
-                    pause_text_rect.centerx = pause_text_coord[0]
-                    pause_text_rect.centery = pause_text_coord[1]
-                    pygame.display.flip()
+        # display the new time
+        self.time_label.configure(text=t_txt.format(m=self.minutes, s=self.seconds))
+        self.time_label.after(1000, self.focus_session_loop)  # refresh after 1s
 
-                time.sleep((1/loop_range))
-    
-            total_seconds += 1
-            seconds += 1
-            if seconds >= 60:
-                minutes += 1
-                seconds = 0
-    
-        # play sound and reset variables
-        pygame.mixer.Sound.play(finish_focus_sound)
-        minutes = 0
-        seconds = 1
-        total_seconds = 0
-        num_focus += 1
-    
-        if (num_focus-1) % 4 == 0:
-            session_text = basic_font.render(
-                " Time for a long break! ".format(x=(break_length * 4)), True, text_color, text_background_color)
-            session_text_rect = session_text.get_rect()
-            session_text_rect.centerx = session_text_coord[0]
-            session_text_rect.centery = session_text_coord[1]
-    
-            # update screen
-            widow_surface.fill(rest_background_color)
-            widow_surface.blit(welcome_text, welcome_text_rect)
-            widow_surface.blit(pause_text, pause_text_rect)
-            widow_surface.blit(session_text, session_text_rect)
-            pygame.display.flip()
-    
-            # other operations
-            temp = break_length * 60 * 4
-            pygame.mixer.Sound.play(long_break_sound)
+    def start_rest_session(self):
+        # setup in order to run a focus session.
+        self.seconds = 0
+        if self.num_rest % 4 == 0:
+            self.minutes = self.rest_length*4
         else:
-            session_text = basic_font.render(
-                " Rest session {x} ".format(x=num_break), True, text_color, text_background_color)
-            session_text_rect = session_text.get_rect()
-            session_text_rect.centerx = session_text_coord[0]
-            session_text_rect.centery = session_text_coord[1]
-    
-            # update screen
-            widow_surface.fill(rest_background_color)
-            widow_surface.blit(welcome_text, welcome_text_rect)
-            widow_surface.blit(pause_text, pause_text_rect)
-            widow_surface.blit(session_text, session_text_rect)
-            pygame.display.update()
-            pygame.display.flip()
-    
-            # other operations
-            temp = break_length * 60
-    
-        while total_seconds < temp:
-            # update time text
-            time_text = basic_font.render(
-                " Time elapsed: {minutes} Minutes {seconds} Seconds ".format(minutes=minutes, seconds=seconds), True,
-                text_color, text_background_color)
-            time_text_rect = time_text.get_rect()
-            time_text_rect.centerx = time_text_coord[0]
-            time_text_rect.centery = time_text_coord[1]
-    
-            # update screen
-            widow_surface.fill(rest_background_color)
-            widow_surface.blit(welcome_text, welcome_text_rect)
-            widow_surface.blit(pause_text, pause_text_rect)
-            widow_surface.blit(time_text, time_text_rect)
-            widow_surface.blit(session_text, session_text_rect)
-            pygame.display.flip()
-    
-            # pomodoro stuff
-            time.sleep(1)
-            total_seconds += 1
-            seconds += 1
-            if seconds >= 60:
-                minutes += 1
-                seconds = 0
-            if check_for_events(pause_text_rect) == 1:
-                if pause_button_res == "RESUME":
-                    pause_button_res = "PAUSE"
-                elif pause_button_res == "PAUSE":
-                    pause_button_res = "RESUME"
-                pause_text = big_font.render(pause_button_res, True, text_color, text_background_color)
-                pause_text_rect = pause_text.get_rect()
-                pause_text_rect.centerx = time_text_coord[0]
-                pause_text_rect.centery = time_text_coord[1]
-                pygame.display.flip()
-    
-        minutes = 0
-        seconds = 1
-        total_seconds = 0
-        num_break += 1
+            self.minutes = self.rest_length
+
+        # update labels
+        self.time_label.configure(text=t_txt.format(m=self.minutes, s=self.seconds))
+        self.session_label.configure(text=rest_txt.format(x=self.num_rest))
+
+        self.time_label.after(1000, self.rest_session_loop)  # start the rest loop
+
+    def rest_session_loop(self):
+        self.seconds -= 1
+        if self.seconds < 0:
+            self.seconds = 59
+            self.minutes -= 1
+            if self.minutes < 0:
+                # once rest session ends, start another focus session
+                self.num_rest += 1
+                self.time_label.after(0, self.start_focus_session)
+
+        # display the new time
+        self.time_label.configure(text=t_txt.format(m=self.minutes, s=self.seconds))
+        self.time_label.after(1000, self.rest_session_loop)  # refresh after 1s
 
 
-main()
+# Below here is the "main"
+
+# initialize objects
+pause_button_text = tk.StringVar()
+pause_button_text.set("Pause")
+pause_button = tk.Button(window, textvariable=pause_button_text, width=30,
+                         command=lambda: pause_pressed(pause_button_text))
+
+welcome_label = tk.Label(window, text='Welcome to Focus Timer')
+
+# organize objects onto display
+welcome_label.pack()
+timer = Timer(window)
+pause_button.pack()
+
+# run the program?
+window.mainloop()
