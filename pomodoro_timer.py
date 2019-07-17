@@ -13,6 +13,18 @@ long_rest_sound = pygame.mixer.Sound("finishFourthFocus.wav")
 # TODO make GUI look a bit better
 
 
+def callback():
+    print("Exiting now")
+    # TODO I need to log the session data here before the application closes
+    
+    # File format:
+    # [Date]
+    # [NumFocus],[FocLength]
+    # [NumRest],[RestLength]
+
+    window.destroy()
+
+
 def pause_pressed(pbt, _timer):
 
     if pbt.get() == "Pause":
@@ -33,6 +45,18 @@ class Timer:
     focus_length = 21
     rest_length = 4
     is_paused = False
+
+    def get_num_focus(self):
+        return self.num_focus
+
+    def get_num_rest(self):
+        return self.num_rest
+
+    def get_focus_length(self):
+        return self.focus_length
+
+    def get_rest_length(self):
+        return self.rest_length
 
     def __init__(self, parent):
         # label displaying time
@@ -129,5 +153,5 @@ pause_button = tk.Button(window, textvariable=pause_button_text, width=30,
                          command=lambda: pause_pressed(pause_button_text, timer))
 
 pause_button.pack()
-
+window.protocol("WM_DELETE_WINDOW", callback)  # this line let's me override the application quit method.
 window.mainloop()  # run the Tk program loop
