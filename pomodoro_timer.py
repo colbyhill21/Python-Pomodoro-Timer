@@ -1,5 +1,6 @@
 import tkinter as tk
 import pygame
+
 pygame.mixer.init()
 
 window = tk.Tk()  # window is the name of the main window object
@@ -10,7 +11,6 @@ rest_txt = 'Rest Session {x}'
 start_focus_sound = pygame.mixer.Sound("startFocus.wav")
 rest_sound = pygame.mixer.Sound("finishFocus.wav")
 long_rest_sound = pygame.mixer.Sound("finishFourthFocus.wav")
-# TODO make GUI look a bit better
 
 
 def callback():
@@ -42,8 +42,8 @@ class Timer:
     seconds = 1
     minutes = 0
     total_seconds = 0
-    focus_length = 21
-    rest_length = 4
+    focus_length = 1
+    rest_length = 1
     is_paused = False
 
     def get_num_focus(self):
@@ -61,7 +61,9 @@ class Timer:
     def __init__(self, parent):
         # label displaying time
         self.time_label = tk.Label(parent, text=t_txt.format(m=self.minutes, s=self.seconds), width=30)
+        self.time_label.config(background='black', foreground="white")
         self.session_label = tk.Label(parent, text=foc_txt.format(x=self.num_focus))
+        self.session_label.config(background='black', foreground="white")
         # put widgets onto display
         self.session_label.pack()
         self.time_label.pack()
@@ -144,14 +146,17 @@ class Timer:
 # Below here is the "main"
 
 # initialize objects
-welcome_label = tk.Label(window, text='Welcome to Focus Timer')
+welcome_label = tk.Label(window, text='Welcome to Focus Timer', background='black', foreground="white")
 welcome_label.pack()
 timer = Timer(window)
 pause_button_text = tk.StringVar()
 pause_button_text.set("Pause")
-pause_button = tk.Button(window, textvariable=pause_button_text, width=30,
-                         command=lambda: pause_pressed(pause_button_text, timer))
+pause_button = tk.Button(window, textvariable=pause_button_text, width=30, highlightbackground='black',
+                         highlightthickness=20, command=lambda: pause_pressed(pause_button_text, timer))
+
 
 pause_button.pack()
+
+window.configure(background='black')
 window.protocol("WM_DELETE_WINDOW", callback)  # this line let's me override the application quit method.
 window.mainloop()  # run the Tk program loop
